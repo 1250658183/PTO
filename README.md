@@ -19,3 +19,8 @@ The paper has been accepted in ACL 2023.
 ### * + OOD Group
 
     cd ./separate_prefix &&  python tester4_OODprefix.py
+
+
+### Dataset
+
+The dataset is stored in [Google Drive](https://drive.google.com/file/d/18_eQIC2sWTe7dydYDWOHQLPrk7C0Bjtf/view?usp=sharing), unzip and replace the dataset directory.
