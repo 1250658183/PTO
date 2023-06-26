@@ -31,7 +31,7 @@ print(args)
 epochs = 50
 import os
 
-log_dir = "~/PTO_check_logs/PTO_IMDB"
+log_dir = f"~/PTO_check_logs/PTO_{args.dataset}"
 
 if args.dataset == 'IMDB':
     from ClincDataProcessor import IMDBProcessor as OOD_DataProcessor
@@ -206,7 +206,7 @@ result_2_csv = {'val': collections.defaultdict(list), 'test': collections.defaul
 def get_ood_performance(prompt_model, dataloader, epoch, split):
     prompt_model.eval()
     # mytemplate.eval()
-    total_life_scores = []
+    total_pto_scores = []
     total_lle_scores = []
     total_is_oods = []
     funct = nn.NLLLoss(reduction="sum")  # -sum log_i
@@ -223,7 +223,7 @@ def get_ood_performance(prompt_model, dataloader, epoch, split):
         for i, (l, p, p_o) in enumerate(zip(shift_label, shift_probs, shift_probs_ori)):
             sum_neg_log_ind = funct(p, l).item()
             sum_neg_log_x = funct(p_o, l).item()
-            total_life_scores.append(sum_neg_log_ind - sum_neg_log_x)
+            total_pto_scores.append(sum_neg_log_ind - sum_neg_log_x)
             total_lle_scores.append(sum_neg_log_ind)
         guids = [int(k) for k in inputs["guid"]]
         is_oods = [dataloader.raw_dataset[k].meta["is_ood"] for k in guids]
@@ -231,10 +231,10 @@ def get_ood_performance(prompt_model, dataloader, epoch, split):
 
         result_2_csv[split]['guids'].extend(guids)
     result_2_csv[split]['is_oods'].extend(total_is_oods)
-    result_2_csv[split]['life_scores'].extend(total_life_scores)
+    result_2_csv[split]['pto_scores'].extend(total_pto_scores)
     result_2_csv[split]['lle_scores'].extend(total_lle_scores)
     result_2_csv[split]['epoch'].extend([epoch] * len(total_is_oods))
-    return {"life": get_auc(total_is_oods, total_life_scores), "lle": get_auc(total_is_oods, total_lle_scores)}
+    return {"pto": get_auc(total_is_oods, total_pto_scores), "lle": get_auc(total_is_oods, total_lle_scores)}
 
 
 global_step = 0
@@ -280,7 +280,7 @@ for epoch in range(epochs):
     fitlog.add_metric(value=valid_ood_res, name="valid ood res", step=global_step, epoch=epoch + 1)
 
     if args.monitor == "auroc":
-        monitor = valid_ood_res["life"]["auroc"]
+        monitor = valid_ood_res["pto"]["auroc"]
     elif args.monitor == "val_loss":
         monitor = -1 * valid_loss
 

@@ -173,7 +173,7 @@ def get_ood_performance_gather(prompt_model, dataloader, epoch, split):
     prompt_model.eval()
     # mytemplate.eval()
     total_guid = []
-    total_life_scores = []
+    total_pto_scores = []
     total_lle_scores = []
     total_is_oods = []
     funct = nn.NLLLoss(reduction="sum")  # -sum log_i
@@ -185,7 +185,7 @@ def get_ood_performance_gather(prompt_model, dataloader, epoch, split):
         shift_logits_ori, shift_label_ori = prompt_model.get_plm_shift_logits_and_labels(inputs_ori)
         shift_probs_ori = F.log_softmax(shift_logits_ori, dim=-1)
 
-        step_life_scores, step_lle_scores = [[] for _ in range(inputs['label'].size(0))], [[] for _ in range(
+        step_pto_scores, step_lle_scores = [[] for _ in range(inputs['label'].size(0))], [[] for _ in range(
             inputs['label'].size(0))]
         for label_id in range(args.num_types):
             inputs = copy.deepcopy(inputs_ori)
@@ -198,17 +198,17 @@ def get_ood_performance_gather(prompt_model, dataloader, epoch, split):
             for i, (l, p, p_o) in enumerate(zip(shift_label, shift_probs, shift_probs_ori)):
                 sum_neg_log_ind = funct(p, l).item()
                 sum_neg_log_x = funct(p_o, l).item()
-                step_life_scores[i].append(sum_neg_log_ind - sum_neg_log_x)
+                step_pto_scores[i].append(sum_neg_log_ind - sum_neg_log_x)
                 step_lle_scores[i].append(sum_neg_log_ind)
 
-        step_life_scores = torch.tensor(step_life_scores)
+        step_pto_scores = torch.tensor(step_pto_scores)
         step_lle_scores = torch.tensor(step_lle_scores)
 
         if args.gather_method == 'min':
-            step_life_scores_value, step_life_scores_index = torch.min(step_life_scores, dim=-1)
+            step_pto_scores_value, step_pto_scores_index = torch.min(step_pto_scores, dim=-1)
             step_lle_scores_value, step_lle_scores_index = torch.min(step_lle_scores, dim=-1)
 
-        total_life_scores.extend(step_life_scores_value.tolist())
+        total_pto_scores.extend(step_pto_scores_value.tolist())
         total_lle_scores.extend(step_lle_scores_value.tolist())
 
         guids = [int(k) for k in inputs["guid"]]
@@ -218,11 +218,11 @@ def get_ood_performance_gather(prompt_model, dataloader, epoch, split):
 
     result_2_csv[split]['guid'].extend(total_guid)
     result_2_csv[split]['is_oods'].extend(total_is_oods)
-    result_2_csv[split]['life_scores'].extend(total_life_scores)
+    result_2_csv[split]['pto_scores'].extend(total_pto_scores)
     result_2_csv[split]['lle_scores'].extend(total_lle_scores)
     result_2_csv[split]['epoch'].extend([epoch] * len(total_is_oods))
 
-    return {"life": get_auc(total_is_oods, total_life_scores), "lle": get_auc(total_is_oods, total_lle_scores)}
+    return {"pto": get_auc(total_is_oods, total_pto_scores), "lle": get_auc(total_is_oods, total_lle_scores)}
 
 
 fitlog.set_log_dir(log_dir)
@@ -296,7 +296,7 @@ for epoch in range(step1_train_epoch):
     fitlog.add_metric(value=valid_ood_res, name="valid ood res", step=global_step, epoch=epoch + 1)
     fitlog.add_metric(value=valid_ood_res, name="valid ood res", step=global_step, epoch=epoch + 1)
     if args.monitor == "auroc":
-        monitor = valid_ood_res["life"]["auroc"]
+        monitor = valid_ood_res["pto"]["auroc"]
     if monitor > best_monitor:
         best_monitor = monitor
         best_epoch = epoch
