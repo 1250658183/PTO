@@ -24,3 +24,23 @@ The paper has been accepted in ACL 2023.
 ### Dataset
 
 The dataset is stored in [Google Drive](https://drive.google.com/file/d/18_eQIC2sWTe7dydYDWOHQLPrk7C0Bjtf/view?usp=sharing), unzip and replace the dataset directory.
+
+## Citation
+```bibtex
+@inproceedings{ouyang-etal-2023-prefix,
+    title = "On Prefix-tuning for Lightweight Out-of-distribution Detection",
+    author = "Ouyang, Yawen  and
+      Cao, Yongchang  and
+      Gao, Yuan  and
+      Wu, Zhen  and
+      Zhang, Jianbing  and
+      Dai, Xinyu",
+    booktitle = "Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)",
+    month = jul,
+    year = "2023",
+    address = "Toronto, Canada",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2023.acl-long.85",
+    pages = "1533--1545",
+}
+```
